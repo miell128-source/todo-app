@@ -24,7 +24,7 @@
     .tab-wrap.active .tab { color:#245da9; font-weight:700; }
     .tab-delete { border:0; background:transparent; color:var(--muted); padding:7px 8px; font-size:16px; line-height:1; }
     .tab.active { background:#eaf1fc; border-color:#b9cdef; color:#245da9; font-weight:700; }
-    #addTab { flex:0 0 auto; width:36px; height:36px; border:1px solid var(--line); border-radius:9px; background:var(--bg); color:var(--accent); font-size:22px; line-height:1; }
+    #addTab, #addMemo { flex:0 0 auto; width:36px; height:36px; border:1px solid var(--line); border-radius:9px; background:var(--bg); color:var(--accent); font-size:22px; line-height:1; box-shadow:0 1px 3px #0000000d; display:inline-flex; align-items:center; justify-content:center; padding:0; }
     .head,.item { display:grid; grid-template-columns:minmax(65px, 24%) minmax(0,1fr) 42px 28px; gap:8px; align-items:center; }
     .head { padding:10px 8px; border-bottom:2px solid var(--line); color:var(--muted); font-size:12px; font-weight:650; }
     .head div:nth-child(3) { text-align:center; }
@@ -50,7 +50,7 @@
     /* MEMO 전용 포인트 컬러: RGB(167, 210, 143) */
     body.memo-mode { --accent:#A7D28F; }
     body.memo-mode #showMemos.active { color:#52783D; background:#EAF3E3; }
-    body.memo-mode #addMemo { color:#52783D; border-color:var(--line); background:var(--bg); }
+    body.memo-mode #addMemo { color:#52783D; }
     body.memo-mode #memoTabs .tab-wrap.active { background:#EAF3E3; border-color:#A7D28F; }
     body.memo-mode #memoTabs .tab-wrap.active .tab { color:#52783D; }
     body.memo-mode .memo-editor { border-color:#A7D28F; }
