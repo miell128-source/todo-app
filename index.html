@@ -26,7 +26,7 @@
     .tab.active { background:#FFF0EC; border-color:#F5B5A7; color:#A85C4D; font-weight:700; }
     #addTab, #addMemo { flex:0 0 auto; width:36px; height:36px; border:1px solid var(--line); border-radius:9px; background:var(--bg); color:var(--accent); font-size:22px; line-height:1; box-shadow:0 1px 3px #0000000d; display:inline-flex; align-items:center; justify-content:center; padding:0; }
     .head,.item { display:grid; grid-template-columns:minmax(65px, 24%) minmax(0,1fr) 42px 28px; gap:8px; align-items:center; }
-    .head { padding:10px 8px; border-bottom:2px solid var(--line); color:var(--muted); font-size:12px; font-weight:650; }
+    .head { padding:10px 8px; border-bottom:2px solid #F5B5A7; color:var(--muted); font-size:12px; font-weight:650; }
     .head div:nth-child(3) { text-align:center; }
     #list { display:flex; flex-direction:column; }
     .item { min-height:54px; padding:8px; border-bottom:1px solid var(--line); }
@@ -45,7 +45,7 @@
     .trash-entry small { display:block; color:var(--muted); margin-top:4px; }
     .trash-entry button { border:1px solid var(--line); background:var(--bg); border-radius:8px; padding:7px 9px; font-size:12px; }
     #emptyTrash { border:1px solid var(--line); border-radius:9px; background:var(--soft); padding:9px 12px; color:var(--muted); font-size:12px; }
-    #exportMemo { width:36px; height:36px; flex:0 0 36px; border:1px solid var(--line); border-radius:9px; background:var(--bg); color:#52783D; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 1px 3px #0000000d; padding:0; }
+    #exportMemo { width:36px; height:36px; flex:0 0 36px; border:1px solid var(--line); border-radius:9px; background:var(--bg); color:#747B24; display:inline-flex; align-items:center; justify-content:center; box-shadow:0 1px 3px #0000000d; padding:0; }
     .memo-section { display:none; }
     .memo-section.visible { display:block; }
     .todo-section.hidden { display:none; }
@@ -55,15 +55,15 @@
     .memo-actions { display:flex; justify-content:flex-end; margin-top:8px; }
     .delete-memo { border:0; background:transparent; color:var(--muted); font-size:13px; padding:7px 8px; }
     .item.done input[type="text"] { color:var(--muted); text-decoration:line-through; }
-    /* TO DO 포인트 컬러: RGB(245, 181, 167) / MEMO 전용 포인트 컬러: RGB(167, 210, 143) */
-    body.memo-mode { --accent:#A7D28F; }
-    body.memo-mode #showMemos.active { color:#52783D; background:#EAF3E3; }
-    body.memo-mode #addMemo { color:#52783D; }
-    body.memo-mode #memoTabs .tab-wrap.active { background:#EAF3E3; border-color:#A7D28F; }
-    body.memo-mode #memoTabs .tab-wrap.active .tab { color:#52783D; }
-    body.memo-mode .memo-editor { border-color:#A7D28F; }
-    body.memo-mode .memo-title:focus, body.memo-mode .memo-body:focus { box-shadow:0 0 0 1px #A7D28F; border-radius:4px; }
-    body.memo-mode .delete-memo { color:#52783D; }
+    /* TO DO: #F5B5A7 / MEMO: #DDE67B / 공통 음영·구분선: 중성 회색 */
+    body.memo-mode { --accent:#DDE67B; }
+    body.memo-mode #showMemos.active { color:#747B24; background:#F5F7D9; }
+    body.memo-mode #addMemo { color:#747B24; }
+    body.memo-mode #memoTabs .tab-wrap.active { background:#F5F7D9; border-color:#DDE67B; }
+    body.memo-mode #memoTabs .tab-wrap.active .tab { color:#747B24; }
+    body.memo-mode .memo-editor { border-color:#DDE67B; }
+    body.memo-mode .memo-title:focus, body.memo-mode .memo-body:focus { box-shadow:0 0 0 1px #DDE67B; border-radius:4px; }
+    body.memo-mode .delete-memo { color:#747B24; }
     .actions { display:flex; gap:8px; margin-top:18px; }
     button { font:inherit; cursor:pointer; }
     #add { flex:1; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--soft); color:var(--text); font-size:14px; font-weight:650; }
