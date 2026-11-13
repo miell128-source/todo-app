@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="간단한 세 칸 할 일 목록">
+  <meta name="description" content="탭별로 관리하는 간단한 할 일 목록">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <title>TO DO</title>
@@ -13,9 +13,14 @@
     * { box-sizing:border-box; }
     body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
     main { max-width:680px; margin:0 auto; padding:22px 16px max(24px, env(safe-area-inset-bottom)); }
-    header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    header { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
     h1 { font-size:21px; margin:0; letter-spacing:.02em; }
     #summary { font-size:12px; color:var(--muted); }
+    .tabs-wrap { display:flex; align-items:center; gap:7px; margin-bottom:18px; }
+    #tabs { display:flex; gap:6px; overflow-x:auto; flex:1; min-width:0; scrollbar-width:thin; padding:2px 1px 7px; }
+    .tab { flex:0 0 auto; max-width:160px; padding:9px 13px; border:1px solid var(--line); border-radius:9px; background:var(--soft); color:var(--muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tab.active { background:#eaf1fc; border-color:#b9cdef; color:#245da9; font-weight:700; }
+    #addTab { flex:0 0 auto; width:36px; height:36px; border:1px solid var(--line); border-radius:9px; background:var(--bg); color:var(--accent); font-size:22px; line-height:1; }
     .head,.item { display:grid; grid-template-columns:minmax(74px, 26%) minmax(0,1fr) 62px; gap:10px; align-items:center; }
     .head { padding:10px 8px; border-bottom:2px solid var(--line); color:var(--muted); font-size:12px; font-weight:650; }
     .head div:last-child { text-align:center; }
@@ -30,16 +35,21 @@
     button { font:inherit; cursor:pointer; }
     #add { flex:1; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--soft); color:var(--text); font-size:14px; font-weight:650; }
     #clear { border:0; background:transparent; color:var(--muted); font-size:12px; padding:8px; }
-    .hint { color:var(--muted); font-size:11px; text-align:center; margin:18px 0 0; }
+    .hint { color:var(--muted); font-size:11px; text-align:center; margin:18px 0 0; line-height:1.6; }
     @media (prefers-color-scheme: dark) {
       :root { color-scheme:dark; --line:#343840; --muted:#a0a5af; --text:#f0f1f3; --bg:#17191d; --soft:#22252b; }
       .item input[type="text"]:focus { background:#242b37; box-shadow:0 0 0 1px #526b91; }
+      .tab.active { background:#26364d; border-color:#526b91; color:#c5dcff; }
     }
   </style>
 </head>
 <body>
 <main>
   <header><h1>TO DO</h1><div id="summary">0개 · 완료 0개</div></header>
+  <div class="tabs-wrap">
+    <nav id="tabs" aria-label="TO DO 탭"></nav>
+    <button id="addTab" type="button" aria-label="새 탭 만들기" title="새 탭 만들기">＋</button>
+  </div>
   <section aria-label="할 일 목록">
     <div class="head"><div>날짜·순번</div><div>할 일</div><div>완료</div></div>
     <div id="list"></div>
@@ -48,25 +58,69 @@
     <button id="add" type="button">＋ 할 일 추가</button>
     <button id="clear" type="button">전체 비우기</button>
   </div>
-  <p class="hint">입력 내용은 이 휴대폰에 자동 저장됩니다.</p>
+  <p class="hint">내용은 이 기기에 자동 저장됩니다.<br>탭 이름을 두 번 누르면 이름을 바꿀 수 있어요.</p>
 </main>
 <script>
 (() => {
-  const STORAGE_KEY = 'simple-todo-pwa-v1';
+  const STORAGE_KEY = 'simple-todo-pwa-tabs-v2';
+  const LEGACY_KEY = 'simple-todo-pwa-v1';
   const list = document.getElementById('list');
   const summary = document.getElementById('summary');
-  let items = [];
+  const tabsEl = document.getElementById('tabs');
+  let state;
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    if (Array.isArray(saved)) items = saved;
-  } catch (_) {}
-
-  function save() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
-    catch (_) { alert('저장 공간에 문제가 있어 저장하지 못했어요.'); }
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (saved && Array.isArray(saved.tabs) && saved.tabs.length) {
+      state = saved;
+    } else {
+      // 기존 단일 목록을 첫 탭으로 옮겨 기존 할 일을 보존합니다.
+      let oldItems = [];
+      try {
+        const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || '[]');
+        if (Array.isArray(legacy)) oldItems = legacy;
+      } catch (_) {}
+      state = { activeId: 'tab-1', tabs: [{ id: 'tab-1', name: 'TO DO', items: oldItems }] };
+      persist();
+    }
+  } catch (_) {
+    state = { activeId: 'tab-1', tabs: [{ id: 'tab-1', name: 'TO DO', items: [] }] };
   }
 
+  function activeTab() {
+    return state.tabs.find(tab => tab.id === state.activeId) || state.tabs[0];
+  }
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch (_) { alert('저장 공간에 문제가 있어 저장하지 못했어요.'); }
+  }
+  function renderTabs() {
+    tabsEl.replaceChildren();
+    state.tabs.forEach(tab => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'tab' + (tab.id === state.activeId ? ' active' : '');
+      button.textContent = tab.name;
+      button.title = '두 번 누르면 이름 변경';
+      button.addEventListener('click', () => {
+        state.activeId = tab.id;
+        persist();
+        render();
+      });
+      button.addEventListener('dblclick', () => {
+        const next = prompt('탭 이름을 입력하세요.', tab.name);
+        if (next !== null && next.trim()) {
+          tab.name = next.trim();
+          persist();
+          renderTabs();
+        }
+      });
+      tabsEl.append(button);
+    });
+  }
   function render(focusLast = false) {
+    const tab = activeTab();
+    const items = tab.items;
+    renderTabs();
     list.replaceChildren();
     items.forEach((item, index) => {
       const row = document.createElement('div');
@@ -77,14 +131,14 @@
       marker.placeholder = '날짜·순번';
       marker.setAttribute('aria-label', `${index + 1}번 날짜 또는 순번`);
       marker.value = item.marker || '';
-      marker.addEventListener('input', () => { items[index].marker = marker.value; save(); });
+      marker.addEventListener('input', () => { item.marker = marker.value; persist(); });
 
       const task = document.createElement('input');
       task.type = 'text';
       task.placeholder = '할 일을 입력하세요';
       task.setAttribute('aria-label', `${index + 1}번 할 일`);
       task.value = item.task || '';
-      task.addEventListener('input', () => { items[index].task = task.value; save(); });
+      task.addEventListener('input', () => { item.task = task.value; persist(); });
 
       const checkWrap = document.createElement('label');
       checkWrap.className = 'check';
@@ -93,12 +147,11 @@
       check.checked = !!item.done;
       check.setAttribute('aria-label', `${index + 1}번 완료`);
       check.addEventListener('change', () => {
-        items[index].done = check.checked;
-        save();
+        item.done = check.checked;
+        persist();
         render();
       });
       checkWrap.append(check);
-
       row.append(marker, task, checkWrap);
       list.append(row);
     });
@@ -110,16 +163,27 @@
     }
   }
 
+  document.getElementById('addTab').addEventListener('click', () => {
+    const name = prompt('새 TO DO 탭 이름을 입력하세요.');
+    if (name === null || !name.trim()) return;
+    const id = 'tab-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+    state.tabs.push({ id, name: name.trim(), items: [] });
+    state.activeId = id;
+    persist();
+    render();
+  });
+
   document.getElementById('add').addEventListener('click', () => {
-    items.push({ marker: '', task: '', done: false });
-    save();
+    activeTab().items.push({ marker: '', task: '', done: false });
+    persist();
     render(true);
   });
 
   document.getElementById('clear').addEventListener('click', () => {
-    if (items.length && confirm('전체 목록을 비울까요?')) {
-      items = [];
-      save();
+    const items = activeTab().items;
+    if (items.length && confirm(`'${activeTab().name}' 탭의 할 일을 모두 비울까요?`)) {
+      activeTab().items = [];
+      persist();
       render();
     }
   });
