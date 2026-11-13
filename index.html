@@ -17,7 +17,7 @@
     h1 { font-size:21px; margin:0; letter-spacing:.02em; }
     #summary { font-size:12px; color:var(--muted); }
     .tabs-wrap { display:flex; align-items:center; gap:7px; margin-bottom:18px; }
-    #tabs { display:flex; gap:6px; overflow-x:auto; flex:1; min-width:0; scrollbar-width:thin; padding:2px 1px 7px; }
+    #tabs, #memoTabs { display:flex; gap:6px; overflow-x:auto; flex:1; min-width:0; scrollbar-width:thin; padding:2px 1px 7px; }
     .tab-wrap { flex:0 0 auto; display:flex; align-items:center; border:1px solid var(--line); border-radius:9px; background:var(--soft); overflow:hidden; }
     .tab { max-width:150px; padding:9px 11px; border:0; background:transparent; color:var(--muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .tab-wrap.active { background:#eaf1fc; border-color:#b9cdef; }
@@ -35,16 +35,17 @@
     .item input[type="checkbox"] { width:20px; height:20px; accent-color:var(--accent); cursor:pointer; }
     .check { display:flex; justify-content:center; align-items:center; }
     .delete-item { border:0; background:transparent; color:var(--muted); font-size:18px; padding:5px; }
-    .memo-section { margin-top:34px; border-top:1px solid var(--line); padding-top:20px; }
-    .memo-heading { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
-    .memo-heading h2 { margin:0; font-size:17px; }
-    #addMemo { border:1px solid var(--line); border-radius:9px; background:var(--soft); padding:8px 12px; color:var(--text); font-size:13px; }
-    #memos { display:flex; flex-direction:column; gap:12px; }
-    .memo-card { border:1px solid var(--line); border-radius:11px; padding:12px; background:var(--bg); }
-    .memo-card-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-    .memo-title { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font:inherit; font-weight:700; font-size:14px; }
-    .memo-body { width:100%; min-height:100px; resize:vertical; border:0; outline:0; background:transparent; color:var(--text); font:inherit; font-size:14px; line-height:1.6; }
-    .delete-memo { border:0; background:transparent; color:var(--muted); font-size:18px; padding:4px 6px; }
+    .main-switch { display:flex; gap:8px; margin:0 0 18px; padding:4px; background:var(--soft); border:1px solid var(--line); border-radius:12px; }
+    .main-switch button { flex:1; border:0; border-radius:9px; padding:11px; background:transparent; color:var(--muted); font-weight:650; }
+    .main-switch button.active { background:var(--bg); color:var(--accent); box-shadow:0 1px 4px #00000012; }
+    .memo-section { display:none; }
+    .memo-section.visible { display:block; }
+    .todo-section.hidden { display:none; }
+    .memo-editor { border:1px solid var(--line); border-radius:11px; padding:14px; background:var(--bg); }
+    .memo-title { width:100%; border:0; border-bottom:1px solid var(--line); outline:0; background:transparent; color:var(--text); font:inherit; font-weight:700; font-size:16px; padding:7px 2px 12px; margin-bottom:10px; }
+    .memo-body { width:100%; min-height:280px; resize:vertical; border:0; outline:0; background:transparent; color:var(--text); font:inherit; font-size:14px; line-height:1.7; }
+    .memo-actions { display:flex; justify-content:flex-end; margin-top:8px; }
+    .delete-memo { border:0; background:transparent; color:var(--muted); font-size:13px; padding:7px 8px; }
     .item.done input[type="text"] { color:var(--muted); text-decoration:line-through; }
     .actions { display:flex; gap:8px; margin-top:18px; }
     button { font:inherit; cursor:pointer; }
@@ -61,7 +62,12 @@
 </head>
 <body>
 <main>
-  <header><h1>TO DO</h1><div id="summary">0개 · 완료 0개</div></header>
+  <header><h1 id="pageTitle">TO DO</h1><div id="summary">0개 · 완료 0개</div></header>
+  <nav class="main-switch" aria-label="메인 메뉴">
+    <button id="showTodo" class="active" type="button">TO DO</button>
+    <button id="showMemos" type="button">메모 게시판</button>
+  </nav>
+  <div id="todoSection" class="todo-section">
   <div class="tabs-wrap">
     <nav id="tabs" aria-label="TO DO 탭"></nav>
     <button id="addTab" type="button" aria-label="새 탭 만들기" title="새 탭 만들기">＋</button>
@@ -75,9 +81,17 @@
     <button id="export" type="button">내보내기</button>
     <button id="clear" type="button">전체 비우기</button>
   </div>
-  <section class="memo-section" aria-label="메모 게시판">
-    <div class="memo-heading"><h2>메모 게시판</h2><button id="addMemo" type="button">＋ 새 메모</button></div>
-    <div id="memos"></div>
+  </div>
+  <section id="memoSection" class="memo-section" aria-label="메모 게시판">
+    <div class="tabs-wrap">
+      <nav id="memoTabs" aria-label="메모 탭"></nav>
+      <button id="addMemo" type="button" aria-label="새 메모 만들기" title="새 메모 만들기">＋</button>
+    </div>
+    <div class="memo-editor">
+      <input id="memoTitle" class="memo-title" type="text" placeholder="메모 제목">
+      <textarea id="memoBody" class="memo-body" placeholder="내용을 자유롭게 적어두세요."></textarea>
+      <div class="memo-actions"><button id="deleteMemo" class="delete-memo" type="button">이 메모 삭제 ×</button></div>
+    </div>
   </section>
   <p class="hint">내용은 이 기기에 자동 저장됩니다.<br>탭 이름을 두 번 누르면 이름을 바꿀 수 있어요.</p>
 </main>
@@ -88,13 +102,23 @@
   const list = document.getElementById('list');
   const summary = document.getElementById('summary');
   const tabsEl = document.getElementById('tabs');
-  const memosEl = document.getElementById('memos');
+  const memoTabsEl = document.getElementById('memoTabs');
+  const memoTitleEl = document.getElementById('memoTitle');
+  const memoBodyEl = document.getElementById('memoBody');
+  let currentPage = 'todo';
   let state;
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (saved && Array.isArray(saved.tabs) && saved.tabs.length) {
       state = saved;
-      if (!Array.isArray(state.memos)) state.memos = [];
+      // 이전 버전의 메모 목록을 독립적인 메모 탭으로 이전합니다.
+      if (!Array.isArray(state.memoTabs)) {
+        const oldMemos = Array.isArray(state.memos) ? state.memos : [];
+        state.memoTabs = oldMemos.length ? oldMemos : [{ id: 'memo-' + Date.now(), title: '새 메모', body: '' }];
+        state.activeMemoId = state.memoTabs[0].id;
+      }
+      if (!state.activeMemoId || !state.memoTabs.some(m => m.id === state.activeMemoId)) state.activeMemoId = state.memoTabs[0]?.id || null;
+      delete state.memos;
     } else {
       // 기존 단일 목록을 첫 탭으로 옮겨 기존 할 일을 보존합니다.
       let oldItems = [];
@@ -102,11 +126,11 @@
         const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || '[]');
         if (Array.isArray(legacy)) oldItems = legacy;
       } catch (_) {}
-      state = { activeId: 'tab-1', tabs: [{ id: 'tab-1', name: 'TO DO', items: oldItems }], memos: [] };
+      state = { activeId: 'tab-1', tabs: [{ id: 'tab-1', name: 'TO DO', items: oldItems }], memoTabs: [{ id: 'memo-' + Date.now(), title: '새 메모', body: '' }] , activeMemoId: null }; state.activeMemoId = state.memoTabs[0].id;
       persist();
     }
   } catch (_) {
-    state = { activeId: 'tab-1', tabs: [{ id: 'tab-1', name: 'TO DO', items: [] }], memos: [] };
+    state = { activeId: 'tab-1', tabs: [{ id: 'tab-1', name: 'TO DO', items: [] }], memoTabs: [{ id: 'memo-' + Date.now(), title: '새 메모', body: '' }] }; state.activeMemoId = state.memoTabs[0].id;
   }
 
   function activeTab() {
@@ -144,22 +168,52 @@
       wrap.append(button, del); tabsEl.append(wrap);
     });
   }
-  function renderMemos() {
-    memosEl.replaceChildren();
-    if (!state.memos.length) {
-      const empty = document.createElement('p'); empty.className = 'hint'; empty.textContent = '아직 메모가 없어요. 새 메모를 만들어 보세요.'; memosEl.append(empty); return;
-    }
-    state.memos.forEach(memo => {
-      const card = document.createElement('article'); card.className = 'memo-card';
-      const head = document.createElement('div'); head.className = 'memo-card-head';
-      const title = document.createElement('input'); title.className = 'memo-title'; title.type = 'text'; title.placeholder = '메모 제목'; title.value = memo.title || '';
-      title.addEventListener('input', () => { memo.title = title.value; persist(); });
-      const del = document.createElement('button'); del.type = 'button'; del.className = 'delete-memo'; del.textContent = '×'; del.title = '메모 삭제';
-      del.addEventListener('click', () => { if (confirm(`'${memo.title || '제목 없는 메모'}'를 삭제할까요?`)) { state.memos = state.memos.filter(x => x.id !== memo.id); persist(); renderMemos(); } });
-      const body = document.createElement('textarea'); body.className = 'memo-body'; body.placeholder = '내용을 자유롭게 적어두세요.'; body.value = memo.body || '';
-      body.addEventListener('input', () => { memo.body = body.value; persist(); });
-      head.append(title, del); card.append(head, body); memosEl.append(card);
+  function activeMemo() { return state.memoTabs.find(m => m.id === state.activeMemoId) || state.memoTabs[0]; }
+  function renderMemoTabs() {
+    memoTabsEl.replaceChildren();
+    state.memoTabs.forEach(memo => {
+      const wrap = document.createElement('div');
+      wrap.className = 'tab-wrap' + (memo.id === state.activeMemoId ? ' active' : '');
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'tab';
+      button.textContent = memo.title?.trim() || '제목 없는 메모'; button.title = '두 번 누르면 제목 변경';
+      button.addEventListener('click', () => { saveActiveMemoFields(); state.activeMemoId = memo.id; persist(); renderMemoPage(); });
+      button.addEventListener('dblclick', () => {
+        const next = prompt('메모 탭 이름을 입력하세요.', memo.title || '');
+        if (next !== null && next.trim()) { memo.title = next.trim(); persist(); renderMemoPage(); }
+      });
+      const del = document.createElement('button'); del.type = 'button'; del.className = 'tab-delete'; del.textContent = '×'; del.title = '메모 삭제';
+      del.addEventListener('click', () => deleteMemo(memo));
+      wrap.append(button, del); memoTabsEl.append(wrap);
     });
+  }
+  function saveActiveMemoFields() {
+    const memo = activeMemo(); if (!memo) return;
+    memo.title = memoTitleEl.value; memo.body = memoBodyEl.value; persist();
+  }
+  function renderMemoPage() {
+    if (!state.memoTabs.length) state.memoTabs.push({ id: 'memo-' + Date.now(), title: '새 메모', body: '' });
+    if (!state.activeMemoId || !state.memoTabs.some(m => m.id === state.activeMemoId)) state.activeMemoId = state.memoTabs[0].id;
+    const memo = activeMemo();
+    renderMemoTabs();
+    memoTitleEl.value = memo.title || '';
+    memoBodyEl.value = memo.body || '';
+    document.getElementById('summary').textContent = `${state.memoTabs.length}개 메모`;
+  }
+  function deleteMemo(memo) {
+    if (!confirm(`'${memo.title || '제목 없는 메모'}'를 삭제할까요?`)) return;
+    state.memoTabs = state.memoTabs.filter(x => x.id !== memo.id);
+    if (!state.memoTabs.length) state.memoTabs.push({ id: 'memo-' + Date.now(), title: '새 메모', body: '' });
+    if (state.activeMemoId === memo.id) state.activeMemoId = state.memoTabs[0].id;
+    persist(); renderMemoPage();
+  }
+  function showPage(page) {
+    currentPage = page;
+    document.getElementById('todoSection').classList.toggle('hidden', page !== 'todo');
+    document.getElementById('memoSection').classList.toggle('visible', page === 'memo');
+    document.getElementById('showTodo').classList.toggle('active', page === 'todo');
+    document.getElementById('showMemos').classList.toggle('active', page === 'memo');
+    document.getElementById('pageTitle').textContent = page === 'todo' ? 'TO DO' : '메모 게시판';
+    if (page === 'memo') renderMemoPage(); else render();
   }
   function render(focusLast = false) {
     const tab = activeTab();
@@ -205,7 +259,6 @@
     });
     const completed = items.filter(x => x.done).length;
     summary.textContent = `${items.length}개 · 완료 ${completed}개`;
-    renderMemos();
     if (focusLast) {
       const fields = list.querySelectorAll('input[type="text"]');
       fields[fields.length - 1]?.focus();
@@ -223,10 +276,15 @@
   });
 
   document.getElementById('addMemo').addEventListener('click', () => {
-    const memo = { id: 'memo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6), title: '', body: '' };
-    state.memos.push(memo); persist(); renderMemos();
-    const titles = memosEl.querySelectorAll('.memo-title'); titles[titles.length - 1]?.focus();
+    saveActiveMemoFields();
+    const memo = { id: 'memo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6), title: '새 메모', body: '' };
+    state.memoTabs.push(memo); state.activeMemoId = memo.id; persist(); renderMemoPage(); memoTitleEl.focus();
   });
+  memoTitleEl.addEventListener('input', () => { const memo = activeMemo(); if (memo) { memo.title = memoTitleEl.value; persist(); renderMemoTabs(); } });
+  memoBodyEl.addEventListener('input', () => { const memo = activeMemo(); if (memo) { memo.body = memoBodyEl.value; persist(); } });
+  document.getElementById('deleteMemo').addEventListener('click', () => { const memo = activeMemo(); if (memo) deleteMemo(memo); });
+  document.getElementById('showTodo').addEventListener('click', () => showPage('todo'));
+  document.getElementById('showMemos').addEventListener('click', () => showPage('memo'));
 
   document.getElementById('add').addEventListener('click', () => {
     activeTab().items.push({ marker: '', task: '', done: false });
@@ -251,9 +309,9 @@
       }
       if (tabIndex < state.tabs.length - 1) lines.push('');
     });
-    if (state.memos.length) {
+    if (state.memoTabs.length) {
       lines.push('', '========== 메모 게시판 ==========');
-      state.memos.forEach(memo => {
+      state.memoTabs.forEach(memo => {
         lines.push('', `[${(memo.title || '제목 없는 메모').trim()}]`);
         lines.push((memo.body || '').trim() || '(내용 없음)');
       });
@@ -284,6 +342,8 @@
     window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
   }
   render();
+  renderMemoPage();
+  showPage('todo');
 })();
 </script>
 </body>
