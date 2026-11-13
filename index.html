@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="간단한 세 칸 할 일 목록">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <title>TO DO</title>
+  <style>
+    :root { color-scheme: light; --line:#e5e7eb; --muted:#8a8f98; --text:#20242a; --accent:#3978d6; --bg:#fff; --soft:#f7f8fa; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { max-width:680px; margin:0 auto; padding:22px 16px max(24px, env(safe-area-inset-bottom)); }
+    header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    h1 { font-size:21px; margin:0; letter-spacing:.02em; }
+    #summary { font-size:12px; color:var(--muted); }
+    .head,.item { display:grid; grid-template-columns:minmax(74px, 26%) minmax(0,1fr) 62px; gap:10px; align-items:center; }
+    .head { padding:10px 8px; border-bottom:2px solid var(--line); color:var(--muted); font-size:12px; font-weight:650; }
+    .head div:last-child { text-align:center; }
+    #list { display:flex; flex-direction:column; }
+    .item { min-height:54px; padding:8px; border-bottom:1px solid var(--line); }
+    .item input[type="text"] { width:100%; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font:inherit; font-size:14px; padding:7px 2px; border-radius:5px; }
+    .item input[type="text"]:focus { background:#f4f7fc; box-shadow:0 0 0 1px #cbdaf3; }
+    .item input[type="checkbox"] { width:20px; height:20px; accent-color:var(--accent); cursor:pointer; }
+    .check { display:flex; justify-content:center; align-items:center; }
+    .item.done input[type="text"] { color:var(--muted); text-decoration:line-through; }
+    .actions { display:flex; gap:8px; margin-top:18px; }
+    button { font:inherit; cursor:pointer; }
+    #add { flex:1; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--soft); color:var(--text); font-size:14px; font-weight:650; }
+    #clear { border:0; background:transparent; color:var(--muted); font-size:12px; padding:8px; }
+    .hint { color:var(--muted); font-size:11px; text-align:center; margin:18px 0 0; }
+    @media (prefers-color-scheme: dark) {
+      :root { color-scheme:dark; --line:#343840; --muted:#a0a5af; --text:#f0f1f3; --bg:#17191d; --soft:#22252b; }
+      .item input[type="text"]:focus { background:#242b37; box-shadow:0 0 0 1px #526b91; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header><h1>TO DO</h1><div id="summary">0개 · 완료 0개</div></header>
+  <section aria-label="할 일 목록">
+    <div class="head"><div>날짜·순번</div><div>할 일</div><div>완료</div></div>
+    <div id="list"></div>
+  </section>
+  <div class="actions">
+    <button id="add" type="button">＋ 할 일 추가</button>
+    <button id="clear" type="button">전체 비우기</button>
+  </div>
+  <p class="hint">입력 내용은 이 휴대폰에 자동 저장됩니다.</p>
+</main>
+<script>
+(() => {
+  const STORAGE_KEY = 'simple-todo-pwa-v1';
+  const list = document.getElementById('list');
+  const summary = document.getElementById('summary');
+  let items = [];
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    if (Array.isArray(saved)) items = saved;
+  } catch (_) {}
+
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
+    catch (_) { alert('저장 공간에 문제가 있어 저장하지 못했어요.'); }
+  }
+
+  function render(focusLast = false) {
+    list.replaceChildren();
+    items.forEach((item, index) => {
+      const row = document.createElement('div');
+      row.className = 'item' + (item.done ? ' done' : '');
+
+      const marker = document.createElement('input');
+      marker.type = 'text';
+      marker.placeholder = '날짜·순번';
+      marker.setAttribute('aria-label', `${index + 1}번 날짜 또는 순번`);
+      marker.value = item.marker || '';
+      marker.addEventListener('input', () => { items[index].marker = marker.value; save(); });
+
+      const task = document.createElement('input');
+      task.type = 'text';
+      task.placeholder = '할 일을 입력하세요';
+      task.setAttribute('aria-label', `${index + 1}번 할 일`);
+      task.value = item.task || '';
+      task.addEventListener('input', () => { items[index].task = task.value; save(); });
+
+      const checkWrap = document.createElement('label');
+      checkWrap.className = 'check';
+      const check = document.createElement('input');
+      check.type = 'checkbox';
+      check.checked = !!item.done;
+      check.setAttribute('aria-label', `${index + 1}번 완료`);
+      check.addEventListener('change', () => {
+        items[index].done = check.checked;
+        save();
+        render();
+      });
+      checkWrap.append(check);
+
+      row.append(marker, task, checkWrap);
+      list.append(row);
+    });
+    const completed = items.filter(x => x.done).length;
+    summary.textContent = `${items.length}개 · 완료 ${completed}개`;
+    if (focusLast) {
+      const fields = list.querySelectorAll('input[type="text"]');
+      fields[fields.length - 1]?.focus();
+    }
+  }
+
+  document.getElementById('add').addEventListener('click', () => {
+    items.push({ marker: '', task: '', done: false });
+    save();
+    render(true);
+  });
+
+  document.getElementById('clear').addEventListener('click', () => {
+    if (items.length && confirm('전체 목록을 비울까요?')) {
+      items = [];
+      save();
+      render();
+    }
+  });
+
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  }
+  render();
+})();
+</script>
+</body>
+</html>
