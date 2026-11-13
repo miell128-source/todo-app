@@ -47,6 +47,15 @@
     .memo-actions { display:flex; justify-content:flex-end; margin-top:8px; }
     .delete-memo { border:0; background:transparent; color:var(--muted); font-size:13px; padding:7px 8px; }
     .item.done input[type="text"] { color:var(--muted); text-decoration:line-through; }
+    /* MEMO 전용 포인트 컬러: RGB(167, 210, 143) */
+    body.memo-mode { --accent:#A7D28F; }
+    body.memo-mode #showMemos.active { color:#52783D; background:#EAF3E3; }
+    body.memo-mode #addMemo { color:#52783D; border-color:#A7D28F; background:#F2F8EE; }
+    body.memo-mode #memoTabs .tab-wrap.active { background:#EAF3E3; border-color:#A7D28F; }
+    body.memo-mode #memoTabs .tab-wrap.active .tab { color:#52783D; }
+    body.memo-mode .memo-editor { border-color:#A7D28F; }
+    body.memo-mode .memo-title:focus, body.memo-mode .memo-body:focus { box-shadow:0 0 0 1px #A7D28F; border-radius:4px; }
+    body.memo-mode .delete-memo { color:#52783D; }
     .actions { display:flex; gap:8px; margin-top:18px; }
     button { font:inherit; cursor:pointer; }
     #add { flex:1; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--soft); color:var(--text); font-size:14px; font-weight:650; }
@@ -65,7 +74,7 @@
   <header><h1 id="pageTitle">TO DO</h1><div id="summary">0개 · 완료 0개</div></header>
   <nav class="main-switch" aria-label="메인 메뉴">
     <button id="showTodo" class="active" type="button">TO DO</button>
-    <button id="showMemos" type="button">메모 게시판</button>
+    <button id="showMemos" type="button">MEMO</button>
   </nav>
   <div id="todoSection" class="todo-section">
   <div class="tabs-wrap">
@@ -208,11 +217,12 @@
   }
   function showPage(page) {
     currentPage = page;
+    document.body.classList.toggle('memo-mode', page === 'memo');
     document.getElementById('todoSection').classList.toggle('hidden', page !== 'todo');
     document.getElementById('memoSection').classList.toggle('visible', page === 'memo');
     document.getElementById('showTodo').classList.toggle('active', page === 'todo');
     document.getElementById('showMemos').classList.toggle('active', page === 'memo');
-    document.getElementById('pageTitle').textContent = page === 'todo' ? 'TO DO' : '메모 게시판';
+    document.getElementById('pageTitle').textContent = page === 'todo' ? 'TO DO' : 'MEMO';
     if (page === 'memo') renderMemoPage(); else render();
   }
   function render(focusLast = false) {
@@ -310,7 +320,7 @@
       if (tabIndex < state.tabs.length - 1) lines.push('');
     });
     if (state.memoTabs.length) {
-      lines.push('', '========== 메모 게시판 ==========');
+      lines.push('', '========== MEMO ==========');
       state.memoTabs.forEach(memo => {
         lines.push('', `[${(memo.title || '제목 없는 메모').trim()}]`);
         lines.push((memo.body || '').trim() || '(내용 없음)');
