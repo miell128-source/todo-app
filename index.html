@@ -18,22 +18,38 @@
     #summary { font-size:12px; color:var(--muted); }
     .tabs-wrap { display:flex; align-items:center; gap:7px; margin-bottom:18px; }
     #tabs { display:flex; gap:6px; overflow-x:auto; flex:1; min-width:0; scrollbar-width:thin; padding:2px 1px 7px; }
-    .tab { flex:0 0 auto; max-width:160px; padding:9px 13px; border:1px solid var(--line); border-radius:9px; background:var(--soft); color:var(--muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tab-wrap { flex:0 0 auto; display:flex; align-items:center; border:1px solid var(--line); border-radius:9px; background:var(--soft); overflow:hidden; }
+    .tab { max-width:150px; padding:9px 11px; border:0; background:transparent; color:var(--muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tab-wrap.active { background:#eaf1fc; border-color:#b9cdef; }
+    .tab-wrap.active .tab { color:#245da9; font-weight:700; }
+    .tab-delete { border:0; background:transparent; color:var(--muted); padding:7px 8px; font-size:16px; line-height:1; }
     .tab.active { background:#eaf1fc; border-color:#b9cdef; color:#245da9; font-weight:700; }
     #addTab { flex:0 0 auto; width:36px; height:36px; border:1px solid var(--line); border-radius:9px; background:var(--bg); color:var(--accent); font-size:22px; line-height:1; }
-    .head,.item { display:grid; grid-template-columns:minmax(74px, 26%) minmax(0,1fr) 62px; gap:10px; align-items:center; }
+    .head,.item { display:grid; grid-template-columns:minmax(65px, 24%) minmax(0,1fr) 42px 28px; gap:8px; align-items:center; }
     .head { padding:10px 8px; border-bottom:2px solid var(--line); color:var(--muted); font-size:12px; font-weight:650; }
-    .head div:last-child { text-align:center; }
+    .head div:nth-child(3) { text-align:center; }
     #list { display:flex; flex-direction:column; }
     .item { min-height:54px; padding:8px; border-bottom:1px solid var(--line); }
     .item input[type="text"] { width:100%; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font:inherit; font-size:14px; padding:7px 2px; border-radius:5px; }
     .item input[type="text"]:focus { background:#f4f7fc; box-shadow:0 0 0 1px #cbdaf3; }
     .item input[type="checkbox"] { width:20px; height:20px; accent-color:var(--accent); cursor:pointer; }
     .check { display:flex; justify-content:center; align-items:center; }
+    .delete-item { border:0; background:transparent; color:var(--muted); font-size:18px; padding:5px; }
+    .memo-section { margin-top:34px; border-top:1px solid var(--line); padding-top:20px; }
+    .memo-heading { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .memo-heading h2 { margin:0; font-size:17px; }
+    #addMemo { border:1px solid var(--line); border-radius:9px; background:var(--soft); padding:8px 12px; color:var(--text); font-size:13px; }
+    #memos { display:flex; flex-direction:column; gap:12px; }
+    .memo-card { border:1px solid var(--line); border-radius:11px; padding:12px; background:var(--bg); }
+    .memo-card-head { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .memo-title { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font:inherit; font-weight:700; font-size:14px; }
+    .memo-body { width:100%; min-height:100px; resize:vertical; border:0; outline:0; background:transparent; color:var(--text); font:inherit; font-size:14px; line-height:1.6; }
+    .delete-memo { border:0; background:transparent; color:var(--muted); font-size:18px; padding:4px 6px; }
     .item.done input[type="text"] { color:var(--muted); text-decoration:line-through; }
     .actions { display:flex; gap:8px; margin-top:18px; }
     button { font:inherit; cursor:pointer; }
     #add { flex:1; padding:12px; border:1px solid var(--line); border-radius:10px; background:var(--soft); color:var(--text); font-size:14px; font-weight:650; }
+    #export { border:1px solid var(--line); border-radius:10px; background:var(--bg); color:var(--text); font-size:12px; padding:8px 11px; white-space:nowrap; }
     #clear { border:0; background:transparent; color:var(--muted); font-size:12px; padding:8px; }
     .hint { color:var(--muted); font-size:11px; text-align:center; margin:18px 0 0; line-height:1.6; }
     @media (prefers-color-scheme: dark) {
@@ -56,8 +72,13 @@
   </section>
   <div class="actions">
     <button id="add" type="button">＋ 할 일 추가</button>
+    <button id="export" type="button">내보내기</button>
     <button id="clear" type="button">전체 비우기</button>
   </div>
+  <section class="memo-section" aria-label="메모 게시판">
+    <div class="memo-heading"><h2>메모 게시판</h2><button id="addMemo" type="button">＋ 새 메모</button></div>
+    <div id="memos"></div>
+  </section>
   <p class="hint">내용은 이 기기에 자동 저장됩니다.<br>탭 이름을 두 번 누르면 이름을 바꿀 수 있어요.</p>
 </main>
 <script>
@@ -67,11 +88,13 @@
   const list = document.getElementById('list');
   const summary = document.getElementById('summary');
   const tabsEl = document.getElementById('tabs');
+  const memosEl = document.getElementById('memos');
   let state;
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     if (saved && Array.isArray(saved.tabs) && saved.tabs.length) {
       state = saved;
+      if (!Array.isArray(state.memos)) state.memos = [];
     } else {
       // 기존 단일 목록을 첫 탭으로 옮겨 기존 할 일을 보존합니다.
       let oldItems = [];
@@ -79,11 +102,11 @@
         const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || '[]');
         if (Array.isArray(legacy)) oldItems = legacy;
       } catch (_) {}
-      state = { activeId: 'tab-1', tabs: [{ id: 'tab-1', name: 'TO DO', items: oldItems }] };
+      state = { activeId: 'tab-1', tabs: [{ id: 'tab-1', name: 'TO DO', items: oldItems }], memos: [] };
       persist();
     }
   } catch (_) {
-    state = { activeId: 'tab-1', tabs: [{ id: 'tab-1', name: 'TO DO', items: [] }] };
+    state = { activeId: 'tab-1', tabs: [{ id: 'tab-1', name: 'TO DO', items: [] }], memos: [] };
   }
 
   function activeTab() {
@@ -96,25 +119,46 @@
   function renderTabs() {
     tabsEl.replaceChildren();
     state.tabs.forEach(tab => {
+      const wrap = document.createElement('div');
+      wrap.className = 'tab-wrap' + (tab.id === state.activeId ? ' active' : '');
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'tab' + (tab.id === state.activeId ? ' active' : '');
+      button.className = 'tab';
       button.textContent = tab.name;
       button.title = '두 번 누르면 이름 변경';
-      button.addEventListener('click', () => {
-        state.activeId = tab.id;
-        persist();
-        render();
-      });
+      button.addEventListener('click', () => { state.activeId = tab.id; persist(); render(); });
       button.addEventListener('dblclick', () => {
         const next = prompt('탭 이름을 입력하세요.', tab.name);
-        if (next !== null && next.trim()) {
-          tab.name = next.trim();
-          persist();
-          renderTabs();
-        }
+        if (next !== null && next.trim()) { tab.name = next.trim(); persist(); renderTabs(); }
       });
-      tabsEl.append(button);
+      const del = document.createElement('button');
+      del.type = 'button'; del.className = 'tab-delete'; del.textContent = '×';
+      del.title = '탭 삭제'; del.setAttribute('aria-label', `${tab.name} 탭 삭제`);
+      del.addEventListener('click', () => {
+        if (!confirm(`'${tab.name}' 탭과 그 안의 할 일을 모두 삭제할까요?`)) return;
+        state.tabs = state.tabs.filter(x => x.id !== tab.id);
+        if (!state.tabs.length) state.tabs.push({ id: 'tab-' + Date.now(), name: 'TO DO', items: [] });
+        if (state.activeId === tab.id) state.activeId = state.tabs[0].id;
+        persist(); render();
+      });
+      wrap.append(button, del); tabsEl.append(wrap);
+    });
+  }
+  function renderMemos() {
+    memosEl.replaceChildren();
+    if (!state.memos.length) {
+      const empty = document.createElement('p'); empty.className = 'hint'; empty.textContent = '아직 메모가 없어요. 새 메모를 만들어 보세요.'; memosEl.append(empty); return;
+    }
+    state.memos.forEach(memo => {
+      const card = document.createElement('article'); card.className = 'memo-card';
+      const head = document.createElement('div'); head.className = 'memo-card-head';
+      const title = document.createElement('input'); title.className = 'memo-title'; title.type = 'text'; title.placeholder = '메모 제목'; title.value = memo.title || '';
+      title.addEventListener('input', () => { memo.title = title.value; persist(); });
+      const del = document.createElement('button'); del.type = 'button'; del.className = 'delete-memo'; del.textContent = '×'; del.title = '메모 삭제';
+      del.addEventListener('click', () => { if (confirm(`'${memo.title || '제목 없는 메모'}'를 삭제할까요?`)) { state.memos = state.memos.filter(x => x.id !== memo.id); persist(); renderMemos(); } });
+      const body = document.createElement('textarea'); body.className = 'memo-body'; body.placeholder = '내용을 자유롭게 적어두세요.'; body.value = memo.body || '';
+      body.addEventListener('input', () => { memo.body = body.value; persist(); });
+      head.append(title, del); card.append(head, body); memosEl.append(card);
     });
   }
   function render(focusLast = false) {
@@ -152,11 +196,16 @@
         render();
       });
       checkWrap.append(check);
-      row.append(marker, task, checkWrap);
+      const del = document.createElement('button');
+      del.type = 'button'; del.className = 'delete-item'; del.textContent = '×'; del.title = '할 일 삭제';
+      del.setAttribute('aria-label', `${index + 1}번 할 일 삭제`);
+      del.addEventListener('click', () => { if (confirm('이 할 일을 삭제할까요?')) { items.splice(index, 1); persist(); render(); } });
+      row.append(marker, task, checkWrap, del);
       list.append(row);
     });
     const completed = items.filter(x => x.done).length;
     summary.textContent = `${items.length}개 · 완료 ${completed}개`;
+    renderMemos();
     if (focusLast) {
       const fields = list.querySelectorAll('input[type="text"]');
       fields[fields.length - 1]?.focus();
@@ -173,10 +222,53 @@
     render();
   });
 
+  document.getElementById('addMemo').addEventListener('click', () => {
+    const memo = { id: 'memo-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6), title: '', body: '' };
+    state.memos.push(memo); persist(); renderMemos();
+    const titles = memosEl.querySelectorAll('.memo-title'); titles[titles.length - 1]?.focus();
+  });
+
   document.getElementById('add').addEventListener('click', () => {
     activeTab().items.push({ marker: '', task: '', done: false });
     persist();
     render(true);
+  });
+
+  document.getElementById('export').addEventListener('click', () => {
+    const lines = ['TO DO 백업', `내보낸 날짜: ${new Date().toLocaleString('ko-KR')}`, ''];
+    state.tabs.forEach((tab, tabIndex) => {
+      lines.push(`[${tab.name}]`);
+      if (!tab.items.length) {
+        lines.push('(할 일 없음)');
+      } else {
+        tab.items.forEach(item => {
+          const marker = (item.marker || '').trim();
+          const task = (item.task || '').trim();
+          if (!marker && !task) return;
+          const status = item.done ? '☑' : '□';
+          lines.push(`${status} ${marker}${marker && task ? '  ' : ''}${task}`);
+        });
+      }
+      if (tabIndex < state.tabs.length - 1) lines.push('');
+    });
+    if (state.memos.length) {
+      lines.push('', '========== 메모 게시판 ==========');
+      state.memos.forEach(memo => {
+        lines.push('', `[${(memo.title || '제목 없는 메모').trim()}]`);
+        lines.push((memo.body || '').trim() || '(내용 없음)');
+      });
+    }
+    const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const now = new Date();
+    const date = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+    link.href = url;
+    link.download = `TO-DO-${date}.txt`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 
   document.getElementById('clear').addEventListener('click', () => {
