@@ -9,7 +9,7 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <title>TO DO</title>
   <style>
-    :root { color-scheme: light; --line:#e5e7eb; --muted:#8a8f98; --text:#20242a; --accent:#3978d6; --bg:#fff; --soft:#f7f8fa; }
+    :root { color-scheme: light; --line:#e5e7eb; --muted:#8a8f98; --text:#20242a; --accent:#F5B5A7; --bg:#fff; --soft:#f7f8fa; }
     * { box-sizing:border-box; }
     body { margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
     main { max-width:680px; margin:0 auto; padding:22px 16px max(24px, env(safe-area-inset-bottom)); }
@@ -20,10 +20,10 @@
     #tabs, #memoTabs { display:flex; gap:6px; overflow-x:auto; flex:1; min-width:0; scrollbar-width:thin; padding:2px 1px 7px; }
     .tab-wrap { flex:0 0 auto; display:flex; align-items:center; border:1px solid var(--line); border-radius:9px; background:var(--soft); overflow:hidden; }
     .tab { max-width:150px; padding:9px 11px; border:0; background:transparent; color:var(--muted); font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .tab-wrap.active { background:#eaf1fc; border-color:#b9cdef; }
-    .tab-wrap.active .tab { color:#245da9; font-weight:700; }
+    .tab-wrap.active { background:#FFF0EC; border-color:#F5B5A7; }
+    .tab-wrap.active .tab { color:#A85C4D; font-weight:700; }
     .tab-delete { border:0; background:transparent; color:var(--muted); padding:7px 8px; font-size:16px; line-height:1; }
-    .tab.active { background:#eaf1fc; border-color:#b9cdef; color:#245da9; font-weight:700; }
+    .tab.active { background:#FFF0EC; border-color:#F5B5A7; color:#A85C4D; font-weight:700; }
     #addTab, #addMemo { flex:0 0 auto; width:36px; height:36px; border:1px solid var(--line); border-radius:9px; background:var(--bg); color:var(--accent); font-size:22px; line-height:1; box-shadow:0 1px 3px #0000000d; display:inline-flex; align-items:center; justify-content:center; padding:0; }
     .head,.item { display:grid; grid-template-columns:minmax(65px, 24%) minmax(0,1fr) 42px 28px; gap:8px; align-items:center; }
     .head { padding:10px 8px; border-bottom:2px solid var(--line); color:var(--muted); font-size:12px; font-weight:650; }
@@ -31,7 +31,7 @@
     #list { display:flex; flex-direction:column; }
     .item { min-height:54px; padding:8px; border-bottom:1px solid var(--line); }
     .item input[type="text"] { width:100%; min-width:0; border:0; outline:0; background:transparent; color:var(--text); font:inherit; font-size:14px; padding:7px 2px; border-radius:5px; }
-    .item input[type="text"]:focus { background:#f4f7fc; box-shadow:0 0 0 1px #cbdaf3; }
+    .item input[type="text"]:focus { background:#FFF7F4; box-shadow:0 0 0 1px #F5B5A7; }
     .item input[type="checkbox"] { width:20px; height:20px; accent-color:var(--accent); cursor:pointer; }
     .check { display:flex; justify-content:center; align-items:center; }
     .delete-item { border:0; background:transparent; color:var(--muted); font-size:18px; padding:5px; }
@@ -55,7 +55,7 @@
     .memo-actions { display:flex; justify-content:flex-end; margin-top:8px; }
     .delete-memo { border:0; background:transparent; color:var(--muted); font-size:13px; padding:7px 8px; }
     .item.done input[type="text"] { color:var(--muted); text-decoration:line-through; }
-    /* MEMO 전용 포인트 컬러: RGB(167, 210, 143) */
+    /* TO DO 포인트 컬러: RGB(245, 181, 167) / MEMO 전용 포인트 컬러: RGB(167, 210, 143) */
     body.memo-mode { --accent:#A7D28F; }
     body.memo-mode #showMemos.active { color:#52783D; background:#EAF3E3; }
     body.memo-mode #addMemo { color:#52783D; }
@@ -72,8 +72,8 @@
     .hint { color:var(--muted); font-size:11px; text-align:center; margin:18px 0 0; line-height:1.6; }
     @media (prefers-color-scheme: dark) {
       :root { color-scheme:dark; --line:#343840; --muted:#a0a5af; --text:#f0f1f3; --bg:#17191d; --soft:#22252b; }
-      .item input[type="text"]:focus { background:#242b37; box-shadow:0 0 0 1px #526b91; }
-      .tab.active { background:#26364d; border-color:#526b91; color:#c5dcff; }
+      .item input[type="text"]:focus { background:#332522; box-shadow:0 0 0 1px #A85C4D; }
+      .tab.active { background:#382925; border-color:#A85C4D; color:#FFD8CF; }
     }
   </style>
 </head>
